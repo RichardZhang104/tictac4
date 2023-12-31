@@ -4,7 +4,7 @@ import discord
 import random
 from discord.ext import commands
 
-# Define the obot prefix and create a bot instance with intents
+# Define the bot prefix and create a bot instance with intents
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -17,6 +17,7 @@ games = {}
 blank_character = '~'
 X_char = 'x'
 O_char = 'o'
+
 
 # Function to check for a winner in the Tic-Tac-Toe board
 def check_winner(board):
@@ -44,26 +45,35 @@ def check_winner(board):
             diag_X = True
             diag_O = True
 
+            diag_L_X = True
+            diag_L_O = True
+
             for k in range(4):
-                if board[(i+k) % 5][j] != X_char:
+                if board[(i + k) % 5][j] != X_char:
                     right_X = False
 
-                if board[(i+k) % 5][j] != O_char:
+                if board[(i + k) % 5][j] != O_char:
                     right_O = False
 
-                if board[i][(j+k) % 5] != X_char:
+                if board[i][(j + k) % 5] != X_char:
                     up_X = False
 
-                if board[i][(j+k) % 5] != O_char:
+                if board[i][(j + k) % 5] != O_char:
                     up_O = False
 
-                if board[(i+k) % 5][(j+k) % 5] != X_char:
+                if board[(i + k) % 5][(j + k) % 5] != X_char:
                     diag_X = False
 
-                if board[(i+k) % 5][(j+k) % 5] != O_char:
+                if board[(i + k) % 5][(j + k) % 5] != O_char:
                     diag_O = False
 
-            if right_X or right_O or up_X or up_O or diag_X or diag_O:
+                if board[(i - k) % 5][(j + k) % 5] != X_char:
+                    diag_L_X = False
+
+                if board[(i - k) % 5][(j + k) % 5] != O_char:
+                    diag_L_O = False
+
+            if right_X or right_O or up_X or up_O or diag_X or diag_O or diag_L_X or diag_L_O:
                 return True
 
     return False
@@ -121,7 +131,7 @@ async def move(ctx, col: int):
         await ctx.send("It's not your turn")
         return
 
-    col = col-1
+    col = col - 1
 
     if not (0 <= col < 5):
         await ctx.send("Invalid move")
@@ -130,7 +140,7 @@ async def move(ctx, col: int):
     for row in range(5):
         if board[row][col] == blank_character:
             break
-        elif row == 5-1:
+        elif row == 5 - 1:
             await ctx.send("Column is full")
             return
 
@@ -140,7 +150,8 @@ async def move(ctx, col: int):
 
     # Check for a winner or a draw
     if check_winner(board):
-        winner = ctx.author if turn == players[0] else players[0]
+        winner = ctx.author
+        # winner = ctx.author if turn == players[0] else players[0]
         await ctx.send(f"Game over! {winner.mention} wins!\n{display_board(board)}")
         del games[channel_id]
         return
@@ -155,7 +166,6 @@ async def move(ctx, col: int):
     # Send the updated game state
     message = f"{game['turn'].mention}'s turn.\n{display_board(board)}"
     await ctx.send(message)
-
 
 
 # Command to stop the Tic-Tac-Toe game
@@ -175,13 +185,14 @@ async def stop_tictactoe(ctx):
     else:
         await ctx.send("No game in progress in this channel.")
 
+
 @bot.command(name='help_5x5')
 async def help(ctx):
     await ctx.send("`!5x5 @opponent` to play. `!move col` to place. `!stop` to stop.")
 
+
 # Run the bot with your token from the file
 with open("token", "r") as token_file:
     bot_token = token_file.read().strip()
-
 
 bot.run(bot_token)

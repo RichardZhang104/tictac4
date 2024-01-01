@@ -156,7 +156,22 @@ if __name__ == "__main__":
     mcts = Mcts()
     turn = 1
     while True:
-        print(mcts.to_arrray(mcts.state))
+        board = mcts.to_arrray(mcts.state)[0]
+        board = board[::-1]
+
+        replace_mapping = {
+            0: '~',
+            1: 'x',
+            -1: 'o'
+        }
+
+        # Replace values in the array
+        result_array = [[replace_mapping[value] for value in row] for row in board]
+
+        # Display the result
+        for row in result_array:
+            print(' '.join(row))
+
         print("game over state: ", mcts.check_game_over(mcts.state))
 
         if turn == 1:

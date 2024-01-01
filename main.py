@@ -3,6 +3,8 @@
 import discord
 import random
 from discord.ext import commands
+import game
+import mcts
 
 # Define the bot prefix and create a bot instance with intents
 intents = discord.Intents.default()
@@ -17,6 +19,11 @@ games = {}
 blank_character = '~'
 X_char = 'x'
 O_char = 'o'
+
+
+@bot.event
+async def on_ready():
+    pass
 
 
 # Function to check for a winner in the Tic-Tac-Toe board
@@ -91,8 +98,7 @@ def display_board(board):
 # Command to start a new Tic-Tac-Toe game
 @bot.command(name='5x5')
 async def tictactoe(ctx, opponent: discord.Member):
-    print(opponent)
-
+    print(opponent.name)
     if ctx.author == opponent:
         await ctx.send("You cannot play against yourself!")
         return
@@ -101,14 +107,22 @@ async def tictactoe(ctx, opponent: discord.Member):
         await ctx.send("There's already a game in progress in this channel!")
         return
 
-    # Initialize a new game
-    game_board = [[blank_character for _ in range(5)] for _ in range(5)]
-    turn = random.choice([ctx.author, opponent])
-    games[ctx.channel.id] = {'board': game_board, 'turn': turn, 'players': (ctx.author, opponent)}
+    # hacky, make this unique later
+    if opponent.name == "dem food":
+        print("ai game")
+        await ctx.send("Starting AI game")
+        games[ctx.channel.id] = {'mcts_obj': mcts.Mcts(), 'player': ctx.author, 'game_type': 'ai'}
 
-    # Send the initial game state
-    message = f"{turn.mention}'s turn.\n{display_board(game_board)}"
-    await ctx.send(message)
+    else:
+        # Initialize a new game
+        game_board = [[blank_character for _ in range(5)] for _ in range(5)]
+        turn = random.choice([ctx.author, opponent])
+        games[ctx.channel.id] = {'board': game_board, 'turn': turn, 'players': (ctx.author, opponent),
+                                 'game_type': 'human'}
+
+        # Send the initial game state
+        message = f"{turn.mention}'s turn.\n{display_board(game_board)}"
+        await ctx.send(message)
 
 
 # Command to make a move in the Tic-Tac-Toe game
